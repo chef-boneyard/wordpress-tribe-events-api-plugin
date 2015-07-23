@@ -65,7 +65,12 @@ if(!class_exists('WP_Tribe_Events_Plugin')) {
       * _EventURL	''
       * _EventOrganizerID	0
       */
-      $data = get_metadata('post', $post_id);
+      $metadata = get_metadata('post', $post_id);
+
+      //get_metadata returns values as arrays, recreate our data array with only first value
+      foreach ($metadata as $key => $val) {
+        $data[$key] = $val[0];
+      }
 
       //Disable our hook as saveEventMeta fires wp_update_post
       remove_action('save_post_tribe_event', array($this, 'call_tribe_api'), 10, 3);
