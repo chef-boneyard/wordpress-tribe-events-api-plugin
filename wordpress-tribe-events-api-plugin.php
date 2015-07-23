@@ -55,8 +55,8 @@ if(!class_exists('WP_Tribe_Events_Plugin')) {
       /* Tribe sets these defaults, start/end date seem to be the only required fields
       * _EventShowMapLink	''
       * _EventShowMap	''
-      * _EventStartDate	'<postdate> 08:00:00'
-      * _EventEndDate	'<postdate> 17:00:00'
+      * _EventStartDate	'<postdate> 08:00:00' - Generated from day, hour, minute appended together
+      * _EventEndDate	'<postdate> 17:00:00' - Generated from day, hour, minute appended together
       * _EventDuration 32400
       * _EventVenueID	0
       * _EventCurrencySymbol '$
@@ -69,7 +69,24 @@ if(!class_exists('WP_Tribe_Events_Plugin')) {
 
       //get_metadata returns values as arrays, recreate our data array with only first value
       foreach ($metadata as $key => $val) {
-        $data[$key] = $val[0];
+        switch ($key) {
+          case "EventStartDate":
+            $data['EventStartDate'] = date('Y-m-d', strtotime($val[0]));
+            $data['EventStartHour'] = date('H', strtotime($val[0]));;
+            $data['EventStartMinute'] = date('i', strtotime($val[0]));;
+          break;
+
+          case "EventEndDate":
+            $data['EventEndDate'] = date('Y-m-d', strtotime($val[0]));;
+            $data['EventEndHour'] = date('H', strtotime($val[0]));;
+            $data['EventEndMinute'] = date('i', strtotime($val[0]));;
+          break;
+
+          default:
+            $data[$key] = $val[0];
+        }
+        //Clean up our meta - TODO: Make optional
+        delete_post_meta( $post_id, $key);
       }
 
       //Disable our hook as saveEventMeta fires wp_update_post
