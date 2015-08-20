@@ -31,6 +31,7 @@ if(!class_exists('WP_Tribe_Events_Plugin')) {
      */
     public function __construct() {
       add_action('save_post_tribe_events', array($this, 'call_tribe_api'), 10, 3);
+      add_action('save_post_tribe_venue', array($this, 'call_tribe_api'), 10, 3);
     }
 
     /**
@@ -38,6 +39,7 @@ if(!class_exists('WP_Tribe_Events_Plugin')) {
      */
     public static function activate() {
       add_action('save_post_tribe_events', array($this, 'call_tribe_api'), 10, 3);
+      add_action('save_post_tribe_venue', array($this, 'call_tribe_api'), 10, 3);
     }
 
     /**
@@ -45,6 +47,7 @@ if(!class_exists('WP_Tribe_Events_Plugin')) {
      */
     public static function deactivate() {
       remove_action('save_post_tribe_events', array($this, 'call_tribe_api'), 10, 3);
+      remove_action('save_post_tribe_venue', array($this, 'call_tribe_api'), 10, 3);
     }
 
     /**
@@ -68,6 +71,7 @@ if(!class_exists('WP_Tribe_Events_Plugin')) {
       $metadata = get_metadata('post', $post_id);
 
       //get_metadata returns values as arrays, recreate our data array with only first value
+      //Parse out our date fields along the way
       foreach ($metadata as $key => $val) {
         switch ($key) {
           case "EventStartDate":
@@ -89,14 +93,16 @@ if(!class_exists('WP_Tribe_Events_Plugin')) {
         delete_post_meta( $post_id, $key);
       }
 
-      //Disable our hook as saveEventMeta fires wp_update_post
-      remove_action('save_post_tribe_event', array($this, 'call_tribe_api'), 10, 3);
+      //Disable our hooks as saveEventMeta fires wp_update_post
+      remove_action('save_post_tribe_events', array($this, 'call_tribe_api'), 10, 3);
+      remove_action('save_post_tribe_venue', array($this, 'call_tribe_api'), 10, 3);
 
       //Pass to Tribe Events API
       Tribe__Events__API::saveEventMeta($post_id, $data);
 
-      //Reenable hook
-      add_action('save_post_tribe_event', array($this, 'call_tribe_api'), 10, 3);
+      //Reenable hooks
+      add_action('save_post_tribe_events', array($this, 'call_tribe_api'), 10, 3);
+      add_action('save_post_tribe_venue', array($this, 'call_tribe_api'), 10, 3);
     }
   }
 }
