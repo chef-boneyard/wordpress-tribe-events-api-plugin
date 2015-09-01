@@ -30,30 +30,30 @@ if(!class_exists('WP_Tribe_Events_Plugin')) {
      * Construct the plugin object
      */
     public function __construct() {
-      add_action('save_post_tribe_events', array($this, 'call_tribe_api'), 10, 3);
-      add_action('save_post_tribe_venue', array($this, 'call_tribe_api'), 10, 3);
+      add_action('save_post_tribe_events', array($this, 'save_tribe_event_meta'), 10, 3);
+      add_action('save_post_tribe_venue', array($this, 'save_tribe_venue_meta'), 10, 3);
     }
 
     /**
      * Activate the plugin
      */
     public static function activate() {
-      add_action('save_post_tribe_events', array($this, 'call_tribe_api'), 10, 3);
-      add_action('save_post_tribe_venue', array($this, 'call_tribe_api'), 10, 3);
+      add_action('save_post_tribe_events', array($this, 'save_tribe_event_meta'), 10, 3);
+      add_action('save_post_tribe_venue', array($this, 'save_tribe_venue_meta'), 10, 3);
     }
 
     /**
      * Deactivate the plugin
      */
     public static function deactivate() {
-      remove_action('save_post_tribe_events', array($this, 'call_tribe_api'), 10, 3);
-      remove_action('save_post_tribe_venue', array($this, 'call_tribe_api'), 10, 3);
+      remove_action('save_post_tribe_events', array($this, 'save_tribe_event_meta'), 10, 3);
+      remove_action('save_post_tribe_venue', array($this, 'save_tribe_venue_meta'), 10, 3);
     }
 
     /**
-     * Call the Tribe API to update our meta
+     * Call the Tribe API to update our Event meta
      */
-    public function call_tribe_api($post_id, $post, $update) {
+    public function save_tribe_event_meta($post_id, $post, $update) {
       //Get our temporary meta
       /* Tribe sets these defaults, start/end date seem to be the only required fields
       * _EventShowMapLink	''
@@ -94,16 +94,39 @@ if(!class_exists('WP_Tribe_Events_Plugin')) {
       }
 
       //Disable our hooks as saveEventMeta fires wp_update_post
-      remove_action('save_post_tribe_events', array($this, 'call_tribe_api'), 10, 3);
-      remove_action('save_post_tribe_venue', array($this, 'call_tribe_api'), 10, 3);
+      remove_action('save_post_tribe_events', array($this, 'save_tribe_event_meta'), 10, 3);
 
       //Pass to Tribe Events API
       Tribe__Events__API::saveEventMeta($post_id, $data);
 
       //Reenable hooks
-      add_action('save_post_tribe_events', array($this, 'call_tribe_api'), 10, 3);
-      add_action('save_post_tribe_venue', array($this, 'call_tribe_api'), 10, 3);
+      add_action('save_post_tribe_events', array($this, 'save_tribe_event_meta'), 10, 3);
     }
+
+    /**
+     * Call the Tribe API to update our Venue meta
+     */
+    public function save_tribe_venue_meta($post_id, $post, $update) {
+      $metadata = get_metadata('post', $post_id);
+
+      //get_metadata returns values as arrays, recreate our data array with only first value
+      foreach ($metadata as $key => $val) {
+        $data[$key] = $val[0];
+
+        //Clean up our meta - TODO: Make optional
+        delete_post_meta( $post_id, $key);
+      }
+
+      //Disable our hooks as saveVenueMeta fires wp_update_post
+      remove_action('save_post_tribe_venue', array($this, 'save_tribe_venue_meta'), 10, 3);
+
+      //Pass to Tribe Events API
+      Tribe__Events__API::saveVenueMeta($post_id, $data);
+
+      //Reenable hooks
+      add_action('save_post_tribe_venue', array($this, 'save_tribe_venue_meta'), 10, 3);
+    }
+
   }
 }
 
