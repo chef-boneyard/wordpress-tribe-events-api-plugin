@@ -117,11 +117,11 @@ if(!class_exists('WP_Tribe_Events_Plugin')) {
         delete_post_meta( $post_id, $key);
       }
 
-      //Disable our hooks as saveVenueMeta fires wp_update_post
+      //Disable our hooks in case updateVenue fires wp_update_post
       remove_action('save_post_tribe_venue', array($this, 'save_tribe_venue_meta'), 10, 3);
 
       //Pass to Tribe Events API
-      Tribe__Events__API::saveVenueMeta($post_id, $data);
+      Tribe__Events__API::updateVenue($post_id, $data);
 
       //Reenable hooks
       add_action('save_post_tribe_venue', array($this, 'save_tribe_venue_meta'), 10, 3);

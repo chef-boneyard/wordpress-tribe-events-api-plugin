@@ -2,7 +2,7 @@
 Contributors: CHEF
 Tags: events
 Requires at least: 4.2.0
-Tested up to: 4.2.2
+Tested up to: 4.3.1
 Stable tag: trunk
 License: Apache 2.0
 License URI: http://www.apache.org/licenses/LICENSE-2.0
